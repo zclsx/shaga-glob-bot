@@ -1,0 +1,1 @@
+# shaga-glob-bot
