@@ -52,6 +52,10 @@ npm install
 eyJhbGciOiJIUzI1NiIsInR5...第一个JWT令牌...
 eyJhbGciOiJIUzI1NiIsInR5...第二个JWT令牌...
 ```
+##获取JWT方式：
+注册登录进入账号后F12：
+![image](https://github.com/user-attachments/assets/bb0a296f-5410-450d-81e7-b3f2bd8322cc)
+
 
 ### 2. 代理配置（可选）
 在`data/proxy.txt`中配置代理，格式为`email=proxy_url`，每行一个:
