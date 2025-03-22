@@ -41,7 +41,7 @@ https://glob.shaga.xyz/?r=ju3gz6dL9S
 2. 克隆或下载本仓库
 3. 进入项目目录，执行:
 ```bash
-pnpm install
+npm install
 ```
 
 ## 配置
