@@ -1,0 +1,5 @@
+# 代理配置文件
+# 格式: email=proxy_url
+# 示例:
+# example@gmail.com=socks5://127.0.0.1:1080
+# example2@gmail.com=http://user:pass@127.0.0.1:8080 
