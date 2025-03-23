@@ -112,6 +112,17 @@ class AutoSpinBot {
             const response = await axios.get(`${this.API_BASE_URL}/quests/can-spin`, axiosConfig);
             return response.data;
         } catch (error) {
+            // 500错误处理为已经spin过，需要等待
+            if (error.response && error.response.status === 500) {
+                logger.warn(`账户 ${this._maskEmail(account.email)} 的Spin状态检查返回500错误，可能已经spin过，等待下次周期`);
+                // 返回一个模拟数据，表示不能spin并且需要等待4小时
+                const nextSpinTime = 4 * 60 * 60 * 1000; // 4小时的毫秒数
+                return {
+                    canSpin: false,
+                    nextSpinDurationMs: nextSpinTime
+                };
+            }
+            
             logger.error(`检查账户 ${this._maskEmail(account.email)} 的Spin状态失败: ${error.message}`);
             return null;
         }
@@ -162,6 +173,7 @@ class AutoSpinBot {
         const spinStatus = await this.checkCanSpin(account);
         
         if (!spinStatus) {
+            logger.warn(`账户 ${this._maskEmail(account.email)} 无法获取Spin状态，将在下次周期重试`);
             return;
         }
 
@@ -226,15 +238,31 @@ class AutoSpinBot {
         logger.success(`Bot已启动`);
         
         // 立即运行一次
-        this.checkAllAccounts();
+        this.spinAndCheckAccounts();
 
-        // 根据配置的时间间隔定时运行
-        const interval = config.checkInterval || 3600; // 默认1小时
-        cron.schedule(`*/${Math.floor(interval / 60)} * * * *`, () => {
-            this.checkAllAccounts();
+        // 设置每4小时3分钟执行一次（243分钟）
+        cron.schedule(`3 */4 * * *`, () => {
+            this.spinAndCheckAccounts();
         });
 
-        logger.info(`Bot将每 ${Math.floor(interval / 60)} 分钟检查一次所有账户`);
+        logger.info(`Bot将每4小时3分钟执行一次spin操作，并在完成后检查账户`);
+    }
+    
+    async spinAndCheckAccounts() {
+        logger.info(`开始执行spin操作...`);
+        // 先执行spin操作
+        await this.checkAllAccounts();
+        
+        // 检查是否有账户处于倒计时状态
+        const hasActiveCountdowns = Object.keys(this.countdowns).length > 0;
+        
+        if (hasActiveCountdowns) {
+            logger.info(`至少有一个账户正在等待下次Spin时间，将不显示账户状态表`);
+        } else {
+            // 只有当没有活跃倒计时时才显示账户状态
+            logger.info(`Spin操作完成，正在检查账户状态...`);
+            this.displayAccountsTable();
+        }
     }
 }
 
